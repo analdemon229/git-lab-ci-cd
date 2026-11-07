@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Получение проекта
+        uses: actions/checkout@v4
+
+      - name: Установка Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Запуск тестов
+        run: python -m unittest discover -s tests -v
+
+      - name: Генерация документации
+        run: python generate_docs.py
+
+      - name: Проверка документации
+        run: |
+          test -s docs/GENERATED.md
+          grep -q "Версия:" docs/GENERATED.md
+
+      - name: Сохранение документации
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/GENERATED.md
